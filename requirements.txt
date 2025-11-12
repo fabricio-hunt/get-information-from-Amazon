@@ -1,6 +1,7 @@
-streamlit
+=streamlit
 beautifulsoup4
 requests
 pandas
 openpyxl
 deep-translator
+google-generativeai
