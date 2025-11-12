@@ -1,4 +1,5 @@
-# 🛒 Amazon Product Scraper Pro
+
+# 🛒 Amazon Product Scraper Pro v2.0
 
 <div align="center">
 
@@ -7,117 +8,98 @@
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 ![Status](https://img.shields.io/badge/Status-Active-success.svg)
 
-**Extraia dados completos de produtos da Amazon com tradução automática para PT-BR** 🇧🇷
+**Extract complete product data from Amazon with automatic AI translation to Portuguese (PT-BR)** 🇧🇷
 
-[Demo](#-demo) • [Recursos](#-recursos) • [Instalação](#-instalação) • [Como Usar](#-como-usar) • [Deploy](#-deploy)
+[Demo](#-demo) • [Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [Deploy](#-deploy)
 
 </div>
 
 ---
 
-## 📖 Sobre o Projeto
+## 📖 About the Project
 
-**Amazon Product Scraper Pro** é uma ferramenta web desenvolvida em Python que permite extrair informações detalhadas de produtos da Amazon e traduzi-las automaticamente para português brasileiro usando **Deep Translator**.
+**Amazon Product Scraper Pro v2.0** is a Streamlit web app built with Python that lets you extract detailed product data from Amazon and automatically translate it into Brazilian Portuguese using **Deep Translator** or **Gemini AI**.
 
-### 🎯 Por que usar este projeto?
+### 🎯 Why use this tool?
 
-- ✅ **Interface intuitiva** - Fácil de usar, não precisa programar
-- ✅ **Tradução automática** - Todos os dados em PT-BR
-- ✅ **Dados completos** - Título, preço, avaliações, especificações e muito mais
-- ✅ **Múltiplos formatos** - Exporta em CSV, JSON e Excel
-- ✅ **Gratuito** - 100% open source
-
----
-
-## ✨ Recursos
-
-### 📊 Dados Extraídos
-
-| Campo | Descrição |
-|-------|-----------|
-| **Título** | Nome completo do produto |
-| **Preço** | Valor atual do produto |
-| **Avaliação** | Rating médio (ex: 4.5 de 5 estrelas) |
-| **Número de Avaliações** | Total de reviews |
-| **Disponibilidade** | Em estoque / Fora de estoque |
-| **Marca** | Fabricante do produto |
-| **ASIN** | Código único da Amazon |
-| **Imagem** | URL da imagem principal |
-| **Sobre o Item** | Lista de características principais |
-| **Informações do Produto** | Dimensões, peso, modelo, baterias, etc. |
-
-### 🌐 Tradução Automática
-
-- Tradução inteligente usando **Deep Translator**
-- Suporte para textos longos (divide automaticamente)
-- Preserva URLs, números e códigos
-- Progress bar para acompanhar o progresso
-
-### 📥 Formatos de Exportação
-
-- **CSV** - Para análise em Excel/Google Sheets
-- **JSON** - Para integração com outras aplicações
-- **Excel** - Planilha formatada (.xlsx)
+* ✅ **Easy to use** – No coding required
+* ✅ **AI Translation** – Automatic translation to PT-BR (Deep Translator or Gemini AI)
+* ✅ **Complete product data** – Title, price, rating, brand, specs, and more
+* ✅ **Export ready** – CSV, JSON, Excel, and VTEX markdown
+* ✅ **Free & open source**
 
 ---
 
-## 🖼️ Demo
+## ✨ Features
 
-### Interface Principal
-```
-🛒 Amazon Product Scraper Pro
-┌──────────────────────────────────────┐
-│ 🔗 Cole a URL do produto:            │
-│ [https://www.amazon.com/dp/......]   │
-│                                      │
-│ [🚀 Coletar Dados]                   │
-└──────────────────────────────────────┘
-```
+### 📊 Extracted Data
 
-### Exemplo de Resultado
+| Field                   | Description                              |
+| ----------------------- | ---------------------------------------- |
+| **Title**               | Product name                             |
+| **Price**               | Current product price                    |
+| **Rating**              | Average star rating                      |
+| **Number of Reviews**   | Total number of reviews                  |
+| **Availability**        | In stock / Out of stock                  |
+| **Brand**               | Product manufacturer                     |
+| **ASIN**                | Amazon unique code                       |
+| **Image**               | Main product image URL                   |
+| **About This Item**     | Key features and highlights              |
+| **Product Information** | Dimensions, weight, model, battery, etc. |
+| **Technical Details**   | Extra product specs and info             |
 
-```
-✅ Dados coletados com sucesso!
+---
 
-💰 Preço              ⭐ Avaliação       📦 Disponibilidade
-$39.99               4.1/5 estrelas     Em Estoque
+### 🤖 AI Translation Options
 
-ℹ️ Informações Básicas
-────────────────────────────────────────
-Título: KEEPONFIT Smart Watches for Women...
-Marca: KEEPONFIT
-ASIN: B0DDQ7YCK6
+* **Deep Translator (default)** – Fast and simple
+* **Gemini AI (optional)** – Higher-quality, context-aware translations
+* Smart handling for long texts (auto-split and merge)
+* Preserves links, numbers, and codes
+* Built-in progress bar for translation
 
-📝 Sobre este Item
-────────────────────────────────────────
-1. Cuidados especiais para mulheres...
-2. Rastreamento multifuncional...
-3. Notificações inteligentes...
+---
+
+### 🏪 VTEX Export (New)
+
+Easily export your scraped and translated product data in **VTEX-compatible markdown format**.
+
+Example:
+
+```markdown
+#### KEEPONFIT Smart Watch
+<endDescription>
+Brand: KEEPONFIT<br>
+ASIN: B0DDQ7YCK6<br>
+Color: Rose Gold<br>
+Battery: 7 days<br>
+Disclaimer: Images are for illustration purposes only
 ```
 
 ---
 
-## 🚀 Instalação
+## 🚀 Installation
 
-### Pré-requisitos
+### Requirements
 
-- Python 3.8 ou superior
-- pip (gerenciador de pacotes Python)
+* Python 3.8+
+* pip (Python package manager)
 
-### Passo 1: Clone o Repositório
+### Step 1 – Clone the Repository
 
 ```bash
-git clone https://github.com/seu-usuario/amazon-scraper-pro.git
+git clone https://github.com/your-username/amazon-scraper-pro.git
 cd amazon-scraper-pro
 ```
 
-### Passo 2: Instale as Dependências
+### Step 2 – Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**Conteúdo do `requirements.txt`:**
+**requirements.txt**
+
 ```txt
 streamlit
 beautifulsoup4
@@ -125,268 +107,195 @@ requests
 pandas
 openpyxl
 deep-translator
+google-generativeai
 ```
 
-### Passo 3: Execute o App
+### Step 3 – Run the App
 
 ```bash
 streamlit run app.py
 ```
 
-O aplicativo abrirá automaticamente no seu navegador em `http://localhost:8501`
+The app will open automatically in your browser at:
+`http://localhost:8501`
 
 ---
 
-## 💡 Como Usar
+## 💡 Usage
 
-### 1️⃣ Obtenha a URL do Produto
+### 1️⃣ Paste an Amazon Product URL
 
-Acesse qualquer produto na Amazon e copie a URL:
+Example:
+
 ```
 https://www.amazon.com/dp/B08N5WRWNW
 ```
 
-### 2️⃣ Cole no App
+### 2️⃣ Click “🚀 Collect Data”
 
-Cole a URL no campo de entrada e clique em **"🚀 Coletar Dados"**
+Wait a few seconds while the scraper gathers product info.
 
-### 3️⃣ Aguarde a Coleta
+### 3️⃣ Optional: Enable Translation
 
-- ⏳ Coleta de dados: ~3-5 segundos
-- 🌐 Tradução: ~5-10 segundos
+In the sidebar:
 
-### 4️⃣ Baixe os Dados
+* ✅ Enable PT-BR translation (default)
+* 🤖 Use Gemini AI for better translation quality (requires API key)
 
-Escolha o formato desejado:
-- 📄 **CSV** - Para análise
-- 📋 **JSON** - Para desenvolvimento
-- 📊 **Excel** - Para relatórios
+### 4️⃣ Export Data
 
----
+Choose the format you prefer:
 
-## ⚙️ Configurações
-
-### Ativar/Desativar Tradução
-
-Na **sidebar**, você pode:
-- ✅ Ativar tradução para PT-BR (padrão)
-- ❌ Desativar para manter dados em inglês
-
-### Anti-Bloqueio
-
-Para evitar bloqueios da Amazon:
-- 🔄 Use delays entre requisições (já implementado)
-- 🌐 Use VPN se necessário
-- ⏰ Evite fazer muitas requisições seguidas
+* 📄 CSV
+* 📋 JSON
+* 📊 Excel
+* 🏪 VTEX Markdown
 
 ---
 
-## 🌍 Deploy
+## ⚙️ Settings
 
-### Deploy no Streamlit Cloud (Grátis)
+* 🧠 **Gemini AI Integration** – Optional, requires a free API key from [MakerSuite](https://makersuite.google.com/app/apikey)
+* 🛡️ **Anti-blocking system** – Random headers and delays to reduce Amazon blocking
+* 🔒 **VPN Tip:** Use the **Opera Browser** (built-in free VPN)
 
-1. **Crie um repositório no GitHub** com:
-   - `app.py`
-   - `requirements.txt`
+---
 
-2. **Acesse** [share.streamlit.io](https://share.streamlit.io)
+## 🌍 Deploy Options
 
-3. **Conecte seu GitHub** e selecione o repositório
+### Streamlit Cloud (Free)
 
-4. **Deploy!** 🚀
+1. Push your project to GitHub
+2. Go to [share.streamlit.io](https://share.streamlit.io)
+3. Connect your GitHub account and select your repo
+4. Deploy 🚀
 
-Seu app ficará disponível em:
+Your app will be live at:
+
 ```
-https://seu-usuario-amazon-scraper.streamlit.app
+https://your-username-amazon-scraper.streamlit.app
 ```
 
-### Outras Opções de Deploy
+Other deploy options:
 
-- **Heroku** - Grátis com limitações
-- **Railway** - Deploy rápido
-- **Render** - Deploy automático
-
----
-
-## 🛠️ Tecnologias Utilizadas
-
-| Tecnologia | Uso |
-|------------|-----|
-| **Python 3.8+** | Linguagem principal |
-| **Streamlit** | Framework web |
-| **BeautifulSoup4** | Web scraping |
-| **Requests** | HTTP requests |
-| **Pandas** | Manipulação de dados |
-| **Deep Translator** | Tradução automática |
-| **OpenPyXL** | Geração de Excel |
+* **Render**
+* **Railway**
+* **Heroku**
 
 ---
 
-## 📁 Estrutura do Projeto
+## 🛠️ Technologies Used
+
+| Tech                | Purpose              |
+| ------------------- | -------------------- |
+| **Python 3.8+**     | Main language        |
+| **Streamlit**       | Web interface        |
+| **BeautifulSoup4**  | Web scraping         |
+| **Requests**        | HTTP requests        |
+| **Pandas**          | Data processing      |
+| **Deep Translator** | AI translation       |
+| **Google Gemini**   | Advanced translation |
+| **OpenPyXL**        | Excel export         |
+
+---
+
+## 📂 Project Structure
 
 ```
 amazon-scraper-pro/
 │
-├── app.py                 # Aplicação principal
-├── requirements.txt       # Dependências
-├── README.md             # Documentação
-└── .gitignore            # Arquivos ignorados
+├── app.py                 # Main Streamlit app
+├── requirements.txt       # Dependencies
+├── README.md              # Documentation
+└── .gitignore
 ```
 
 ---
 
-## 🔧 Funções Principais
+## ⚠️ Important Notes
 
-### `coletar_dados_produto(url: str) -> dict`
-Extrai todos os dados do produto da Amazon
+### Responsible Use
 
-### `traduzir_dados(dados: dict) -> dict`
-Traduz dados usando Deep Translator
+* ⚖️ Respect Amazon’s Terms of Service
+* 🚫 Avoid mass scraping
+* 🧩 Use for educational or testing purposes only
 
-### `extrair_about_item(soup: BeautifulSoup) -> List[str]`
-Extrai lista de características do produto
+### Limitations
 
-### `extrair_product_info(soup: BeautifulSoup) -> Dict[str, str]`
-Extrai tabela de informações técnicas
-
----
-
-## ⚠️ Avisos Importantes
-
-### Uso Responsável
-
-- ⚖️ Respeite os Termos de Serviço da Amazon
-- 🎓 Use apenas para fins educacionais
-- 🚫 Não faça scraping em massa
-- ⏰ Respeite os rate limits
-
-### Limitações
-
-- 🔒 Amazon pode bloquear IPs suspeitos
-- 📊 Layout da Amazon pode mudar
-- 🌐 Alguns produtos podem ter estrutura diferente
-- ⏱️ Tradução pode demorar em textos longos
+* 🔒 Amazon may block repeated requests
+* 🧱 Layout changes can break selectors
+* 🌐 Some products have different page structures
+* 🕒 Translation may take longer for long descriptions
 
 ---
 
-## 🐛 Solução de Problemas
+## 🐛 Troubleshooting
 
-### Erro: "Deep Translator não instalado"
-
-```bash
-pip install deep-translator
-```
-
-### Erro: "Amazon bloqueou a requisição"
-
-- Use uma VPN
-- Aguarde alguns minutos
-- Use headers diferentes
-
-### Dados vêm como "N/A"
-
-- Amazon mudou o layout
-- Produto tem estrutura diferente
-- Use outro produto para testar
+| Issue                               | Solution                                    |
+| ----------------------------------- | ------------------------------------------- |
+| **"Deep Translator not installed"** | `pip install deep-translator`               |
+| **"Amazon blocked the request"**    | Use a VPN or wait a few minutes             |
+| **"N/A" data fields**               | Try another product URL (layout may differ) |
 
 ---
 
-## 🤝 Contribuindo
+## 🤝 Contributing
 
-Contribuições são bem-vindas! 🎉
+Contributions are welcome! 🎉
 
-1. Fork o projeto
-2. Crie uma branch (`git checkout -b feature/NovaFuncionalidade`)
-3. Commit suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/NovaFuncionalidade`)
-5. Abra um Pull Request
-
----
-
-## 📝 Roadmap
-
-### Próximas Funcionalidades
-
-- [ ] Suporte para múltiplas URLs
-- [ ] Comparação de preços
-- [ ] Histórico de preços
-- [ ] Notificações de queda de preço
-- [ ] API REST
-- [ ] Dashboard com gráficos
-- [ ] Suporte para outros marketplaces (Mercado Livre, etc)
+1. Fork the project
+2. Create a feature branch
+3. Commit your changes
+4. Push and open a Pull Request
 
 ---
 
-## 📄 Licença
+## 🧭 Roadmap
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
----
-
-## 👤 Autor
-
-**Seu Nome**
-
-- GitHub: [@seu-usuario](https://github.com/seu-usuario)
-- LinkedIn: [Seu Nome](https://linkedin.com/in/seu-perfil)
-- Email: fabriciomacedo@bemol.com.br
+* [ ] Multi-URL support
+* [ ] Price comparison
+* [ ] Price history tracking
+* [ ] Price drop alerts
+* [ ] REST API
+* [ ] Dashboard with charts
+* [ ] Support for other marketplaces (Mercado Livre, etc.)
 
 ---
 
-## 🌟 Mostre seu Apoio
+## 📄 License
 
-Se este projeto te ajudou, considere dar uma ⭐️!
-
----
-
-## 📞 Contato
-
-Tem dúvidas ou sugestões? Entre em contato!
-
-- 💬 Issues: [GitHub Issues](https://github.com/seu-usuario/amazon-scraper-pro/issues)
-- 📧 Email: seu.email@exemplo.com
+This project is under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 
-<div align="center">
+## 👤 Author
 
-**Desenvolvido com ❤️ e ☕ por [Seu Nome]**
+**Fabricio Baraúna**
 
-⭐ **Se gostou, deixe uma estrela!** ⭐
-
-</div>
-
----
-
-## 🎓 Recursos Adicionais
-
-### Tutoriais
-- [Como fazer web scraping com Python](https://realpython.com/beautiful-soup-web-scraper-python/)
-- [Streamlit Documentation](https://docs.streamlit.io/)
-- [Deep Translator Guide](https://deep-translator.readthedocs.io/)
-
-### APIs Alternativas
-- [Amazon Product Advertising API](https://webservices.amazon.com/paapi5/documentation/)
-- [Rainforest API](https://www.rainforestapi.com/)
-- [ScraperAPI](https://www.scraperapi.com/)
+* GitHub: [@fabriciobarauna](https://github.com/fabriciobarauna)
+* LinkedIn: [Fabricio Baraúna](https://linkedin.com/in/fabriciobarauna)
+* Email: [fabriciomacedo@bemol.com.br](mailto:fabriciomacedo@bemol.com.br)
 
 ---
 
-## 📊 Estatísticas do Projeto
+## 🌟 Support the Project
 
-![GitHub stars](https://img.shields.io/github/stars/seu-usuario/amazon-scraper-pro?style=social)
-![GitHub forks](https://img.shields.io/github/forks/seu-usuario/amazon-scraper-pro?style=social)
-![GitHub watchers](https://img.shields.io/github/watchers/seu-usuario/amazon-scraper-pro?style=social)
+If this tool helped you, please consider giving it a ⭐️ on GitHub!
 
 ---
 
-## 🏆 Agradecimentos
+## 🏆 Credits
 
-- [Streamlit](https://streamlit.io/) - Framework incrível
-- [Beautiful Soup](https://www.crummy.com/software/BeautifulSoup/) - Web scraping
-- [Deep Translator](https://github.com/nidhaloff/deep-translator) - Tradução
-- Comunidade Python 🐍
+* [Streamlit](https://streamlit.io/) – Web framework
+* [Beautiful Soup](https://www.crummy.com/software/BeautifulSoup/) – HTML parsing
+* [Deep Translator](https://github.com/nidhaloff/deep-translator) – Translation
+* [Google Gemini AI](https://deepmind.google/) – Advanced language model
+* Python Community 🐍
 
 ---
 
-**Última atualização:** Novembro 2025
+**Last update:** November 2025
+
+---
+
+
