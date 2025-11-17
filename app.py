@@ -4,13 +4,14 @@ from typing import List, Dict
 import logging
 import csv
 import json
-from urllib.parse import urlparse, urlunparse, parse_qs
+from urllib.parse import urlparse, urlunparse
 import time
 import io
 import streamlit as st
 from datetime import datetime 
 import pandas as pd
 import re
+import random
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -22,14 +23,25 @@ except ImportError:
     TRADUTOR_DISPONIVEL = False
 
 try:
+    from translate import Translator as LibreTranslator
+    LIBRE_DISPONIVEL = True
+except ImportError:
+    LIBRE_DISPONIVEL = False
+
+try:
     import google.generativeai as genai
     GEMINI_DISPONIVEL = True
 except ImportError:
     GEMINI_DISPONIVEL = False
 
+# User Agents mais diversos e recentes
 USER_AGENTS = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0'
 ]
 
 SELECTORS = {
@@ -53,31 +65,151 @@ TRADUCOES_MANUAIS = {
     'url_produto': 'URL do Produto',
 }
 
+# Tabelas de conversão
+CONVERSAO_MEDIDAS = {
+    # Comprimento
+    'inch': {'para': 'cm', 'multiplicador': 2.54},
+    'inches': {'para': 'cm', 'multiplicador': 2.54},
+    'in': {'para': 'cm', 'multiplicador': 2.54},
+    'ft': {'para': 'm', 'multiplicador': 0.3048},
+    'feet': {'para': 'm', 'multiplicador': 0.3048},
+    'foot': {'para': 'm', 'multiplicador': 0.3048},
+    'yard': {'para': 'm', 'multiplicador': 0.9144},
+    'yd': {'para': 'm', 'multiplicador': 0.9144},
+    
+    # Peso
+    'lb': {'para': 'kg', 'multiplicador': 0.453592},
+    'lbs': {'para': 'kg', 'multiplicador': 0.453592},
+    'pound': {'para': 'kg', 'multiplicador': 0.453592},
+    'pounds': {'para': 'kg', 'multiplicador': 0.453592},
+    'oz': {'para': 'g', 'multiplicador': 28.3495},
+    'ounce': {'para': 'g', 'multiplicador': 28.3495},
+    'ounces': {'para': 'g', 'multiplicador': 28.3495},
+    
+    # Volume
+    'gallon': {'para': 'L', 'multiplicador': 3.78541},
+    'gal': {'para': 'L', 'multiplicador': 3.78541},
+    'fl oz': {'para': 'ml', 'multiplicador': 29.5735},
+    'fluid ounce': {'para': 'ml', 'multiplicador': 29.5735},
+    'quart': {'para': 'L', 'multiplicador': 0.946353},
+    'qt': {'para': 'L', 'multiplicador': 0.946353},
+    'pint': {'para': 'ml', 'multiplicador': 473.176},
+    'pt': {'para': 'ml', 'multiplicador': 473.176},
+}
+
+# Conversão de tamanhos de roupa
+CONVERSAO_TAMANHOS = {
+    'XXS': 'PP', 'XS': 'P', 'S': 'M', 'M': 'G', 'L': 'GG', 'XL': 'XG', 
+    '2XL': 'XXG', '3XL': 'XXXG', '4XL': 'XXXXG'
+}
+
+def converter_medidas(texto: str) -> str:
+    """Converte medidas americanas para brasileiras"""
+    if not texto or texto == "N/A":
+        return texto
+    
+    texto_convertido = texto
+    
+    # Padrão para encontrar números seguidos de unidades
+    padrao = r'(\d+\.?\d*)\s*([a-zA-Z]+)'
+    
+    def substituir_medida(match):
+        numero = float(match.group(1))
+        unidade = match.group(2).lower()
+        
+        if unidade in CONVERSAO_MEDIDAS:
+            conversao = CONVERSAO_MEDIDAS[unidade]
+            valor_convertido = numero * conversao['multiplicador']
+            unidade_brasileira = conversao['para']
+            
+            # Arredonda para 2 casas decimais
+            valor_convertido = round(valor_convertido, 2)
+            
+            return f"{match.group(0)} ({valor_convertido} {unidade_brasileira})"
+        
+        return match.group(0)
+    
+    texto_convertido = re.sub(padrao, substituir_medida, texto_convertido)
+    
+    # Converte tamanhos de roupa
+    for tamanho_us, tamanho_br in CONVERSAO_TAMANHOS.items():
+        # Procura por tamanhos isolados ou entre espaços
+        texto_convertido = re.sub(
+            rf'\b{tamanho_us}\b',
+            f"{tamanho_us} (Tam. BR: {tamanho_br})",
+            texto_convertido,
+            flags=re.IGNORECASE
+        )
+    
+    return texto_convertido
+
 def limpar_url_amazon(url: str) -> str:
     """Remove parâmetros desnecessários da URL"""
     parsed = urlparse(url)
-    
-    # Mantém apenas o domínio e o path
-    clean_url = urlunparse((
-        parsed.scheme,
-        parsed.netloc,
-        parsed.path,
-        '', '', ''
-    ))
-    
+    clean_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', '', ''))
     return clean_url
 
 def obter_headers():
-    import random
+    """Gera headers mais realistas para evitar bloqueios"""
     return {
         'User-Agent': random.choice(USER_AGENTS),
-        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7'
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Cache-Control': 'max-age=0',
     }
 
 def validar_url_amazon(url: str) -> bool:
     parsed = urlparse(url)
     dominios = ['amazon.com', 'amazon.com.br', 'amazon.co.uk']
     return any(d in parsed.netloc for d in dominios)
+
+def traduzir_com_mymemory(texto: str) -> str:
+    """Traduz usando MyMemory API (gratuita, sem necessidade de chave)"""
+    if not texto or texto == "N/A" or len(texto) < 3:
+        return texto
+    
+    if texto.startswith(('http', 'www', 'https', '$', 'R$')):
+        return texto
+    
+    try:
+        # MyMemory API - gratuita, 1000 palavras/dia sem chave
+        url = "https://api.mymemory.translated.net/get"
+        params = {
+            'q': texto[:500],  # Limita para não exceder
+            'langpair': 'en|pt-br'
+        }
+        
+        response = requests.get(url, params=params, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('responseStatus') == 200:
+                return data['responseData']['translatedText']
+    except Exception as e:
+        logging.warning(f"MyMemory falhou: {e}")
+    
+    return texto
+
+def traduzir_com_libre(texto: str) -> str:
+    """Traduz usando translate library (fallback)"""
+    if not LIBRE_DISPONIVEL or not texto or texto == "N/A":
+        return texto
+    
+    if texto.startswith(('http', 'www', 'https', '$', 'R$')):
+        return texto
+    
+    try:
+        translator = LibreTranslator(from_lang="en", to_lang="pt")
+        return translator.translate(texto[:500])
+    except Exception as e:
+        logging.warning(f"Libre Translate falhou: {e}")
+        return texto
 
 def traduzir_com_gemini(texto: str, gemini_key: str = None) -> str:
     """Traduz texto usando Gemini API para melhor qualidade"""
@@ -105,42 +237,54 @@ Tradução:"""
         return response.text.strip()
         
     except Exception as e:
+        logging.warning(f"Gemini falhou: {e}")
         return traduzir_texto(texto)
 
-def traduzir_texto(texto: str) -> str:
-    """Traduz texto usando Deep Translator (fallback)"""
-    if not TRADUTOR_DISPONIVEL or not texto or texto == "N/A":
+def traduzir_texto(texto: str, metodo: str = "auto") -> str:
+    """Traduz texto tentando múltiplos métodos (cascata de fallback)"""
+    if not texto or texto == "N/A" or len(texto) < 3:
         return texto
     
     if texto.startswith(('http', 'www', 'https', '$', 'R$')):
         return texto
     
-    if len(texto) < 3:
-        return texto
+    # Tenta MyMemory primeiro (mais confiável e gratuito)
+    resultado = traduzir_com_mymemory(texto)
+    if resultado != texto:
+        return resultado
     
-    try:
-        translator = GoogleTranslator(source='en', target='pt')
-        
-        if len(texto) > 4500:
-            partes = []
-            palavras = texto.split('. ')
-            parte_atual = ""
-            
-            for frase in palavras:
-                if len(parte_atual) + len(frase) < 4000:
-                    parte_atual += frase + ". "
-                else:
+    # Fallback para Libre Translate
+    if LIBRE_DISPONIVEL:
+        resultado = traduzir_com_libre(texto)
+        if resultado != texto:
+            return resultado
+    
+    # Fallback para Deep Translator
+    if TRADUTOR_DISPONIVEL:
+        try:
+            translator = GoogleTranslator(source='en', target='pt')
+            if len(texto) > 4500:
+                partes = []
+                palavras = texto.split('. ')
+                parte_atual = ""
+                
+                for frase in palavras:
+                    if len(parte_atual) + len(frase) < 4000:
+                        parte_atual += frase + ". "
+                    else:
+                        partes.append(translator.translate(parte_atual.strip()))
+                        parte_atual = frase + ". "
+                
+                if parte_atual:
                     partes.append(translator.translate(parte_atual.strip()))
-                    parte_atual = frase + ". "
-            
-            if parte_atual:
-                partes.append(translator.translate(parte_atual.strip()))
-            
-            return ' '.join(partes)
-        else:
-            return translator.translate(texto)
-    except Exception as e:
-        return texto
+                
+                return ' '.join(partes)
+            else:
+                return translator.translate(texto)
+        except Exception as e:
+            logging.warning(f"Deep Translator falhou: {e}")
+    
+    return texto
 
 def extrair_texto(soup: BeautifulSoup, selectors: list) -> str:
     for tag, attrs in selectors:
@@ -182,7 +326,6 @@ def extrair_technical_details(soup: BeautifulSoup) -> Dict[str, str]:
     """Extrai todos os detalhes técnicos (Summary e Other Technical Details)"""
     technical_info = {}
     
-    # Procura por todas as tabelas de detalhes técnicos
     tables = soup.find_all('table', class_='prodDetTable')
     
     for table in tables:
@@ -204,7 +347,6 @@ def extrair_product_info(soup: BeautifulSoup) -> Dict[str, str]:
     """Extrai tabela 'Product Information' e 'Additional Information'"""
     info = {}
     
-    # Tabelas de informações
     table_ids = [
         'productDetails_detailBullets_sections1',
         'productDetails_techSpec_section_1',
@@ -250,8 +392,8 @@ def extrair_asin(soup: BeautifulSoup, url: str) -> str:
         return asin_match.group(1)
     return "N/A"
 
-def traduzir_dados(dados: dict, usar_gemini: bool = False, gemini_key: str = None, progress_bar=None) -> dict:
-    """Traduz todos os dados usando Deep Translator ou Gemini"""
+def traduzir_e_converter_dados(dados: dict, usar_gemini: bool = False, gemini_key: str = None, progress_bar=None) -> dict:
+    """Traduz e converte medidas de todos os dados"""
     dados_traduzidos = {}
     total_campos = len(dados)
     
@@ -265,19 +407,24 @@ def traduzir_dados(dados: dict, usar_gemini: bool = False, gemini_key: str = Non
             if valor.startswith(('http', 'www', 'https')) or valor == "N/A":
                 dados_traduzidos[chave_trad] = valor
             else:
+                # Traduz
                 if usar_gemini and gemini_key:
-                    dados_traduzidos[chave_trad] = traduzir_com_gemini(valor, gemini_key)
+                    valor_trad = traduzir_com_gemini(valor, gemini_key)
                 else:
-                    dados_traduzidos[chave_trad] = traduzir_texto(valor)
+                    valor_trad = traduzir_texto(valor)
+                
+                # Converte medidas
+                dados_traduzidos[chave_trad] = converter_medidas(valor_trad)
         
         elif isinstance(valor, list):
             lista_trad = []
             for item in valor:
                 if isinstance(item, str) and item != "N/A":
                     if usar_gemini and gemini_key:
-                        lista_trad.append(traduzir_com_gemini(item, gemini_key))
+                        item_trad = traduzir_com_gemini(item, gemini_key)
                     else:
-                        lista_trad.append(traduzir_texto(item))
+                        item_trad = traduzir_texto(item)
+                    lista_trad.append(converter_medidas(item_trad))
                 else:
                     lista_trad.append(item)
             dados_traduzidos[chave_trad] = lista_trad
@@ -288,9 +435,10 @@ def traduzir_dados(dados: dict, usar_gemini: bool = False, gemini_key: str = Non
                 if sub_chave != "N/A":
                     sub_chave_trad = traduzir_texto(sub_chave)
                     if usar_gemini and gemini_key and sub_valor != "N/A":
-                        dict_trad[sub_chave_trad] = traduzir_com_gemini(sub_valor, gemini_key)
+                        sub_valor_trad = traduzir_com_gemini(sub_valor, gemini_key)
                     else:
-                        dict_trad[sub_chave_trad] = sub_valor
+                        sub_valor_trad = traduzir_texto(sub_valor)
+                    dict_trad[sub_chave_trad] = converter_medidas(sub_valor_trad)
                 else:
                     dict_trad[sub_chave] = sub_valor
             dados_traduzidos[chave_trad] = dict_trad
@@ -298,7 +446,7 @@ def traduzir_dados(dados: dict, usar_gemini: bool = False, gemini_key: str = Non
         else:
             dados_traduzidos[chave_trad] = valor
         
-        time.sleep(0.1)
+        time.sleep(0.05)  # Reduz delay para melhor performance
     
     return dados_traduzidos
 
@@ -306,18 +454,20 @@ def coletar_dados_produto(url: str) -> dict:
     if not validar_url_amazon(url):
         return {"erro": "URL não é da Amazon válida"}
     
-    # Limpa a URL
     url_limpa = limpar_url_amazon(url)
     
-    time.sleep(2)
+    # Delay aleatório mais humano (2-4 segundos)
+    time.sleep(random.uniform(2, 4))
     
     try:
-        response = requests.get(url_limpa, headers=obter_headers(), timeout=20)
+        # Usa session para melhor performance
+        session = requests.Session()
+        response = session.get(url_limpa, headers=obter_headers(), timeout=20)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
         
         if 'To discuss automated access' in response.text:
-            return {"erro": "Amazon bloqueou a requisição. Use VPN ou aguarde."}
+            return {"erro": "Amazon bloqueou a requisição. Use VPN ou aguarde alguns minutos."}
         
         dados = {
             "titulo_h1": extrair_texto(soup, SELECTORS["titulo"]),
@@ -345,21 +495,17 @@ def gerar_vtex_markdown(dados: dict) -> str:
     titulo = dados.get('Título', dados.get('titulo_h1', 'Produto'))
     marca = dados.get('Marca', dados.get('marca', 'N/A'))
     
-    # Informações técnicas
     tech_details = dados.get('Detalhes Técnicos', dados.get('technical_details', {}))
     product_info = dados.get('Informações do Produto', dados.get('product_info', {}))
     
-    # Combina todas as especificações
     specs = {**tech_details, **product_info}
     
     markdown = f"#### {titulo}\n<endDescription>\n"
     
-    # Adiciona especificações
     for chave, valor in specs.items():
         if chave != "N/A" and valor != "N/A":
             markdown += f"{chave}:{valor}<br>\n"
     
-    # Adiciona informações adicionais
     markdown += f"Marca:{marca}<br>\n"
     markdown += f"ASIN:{dados.get('ASIN', dados.get('asin', 'N/A'))}<br>\n"
     markdown += f"Data da Coleta:{dados.get('Data da Coleta', dados.get('data_coleta', 'N/A'))}<br>\n"
@@ -393,50 +539,62 @@ def resetar_aplicacao():
     st.rerun()
 
 def main():
-    st.set_page_config(page_title="Amazon Scraper Pro v2.0", page_icon="🛒", layout="wide")
+    st.set_page_config(page_title="Amazon Scraper Pro v2.1", page_icon="🛒", layout="wide")
     
-    st.title("🛒 Amazon Product Scraper Pro v2.0")
-    st.markdown("**Extraia dados completos de produtos da Amazon com tradução automática via IA**")
+    st.title("🛒 Amazon Product Scraper Pro v2.1")
+    st.markdown("**Extraia dados completos de produtos da Amazon com tradução automática e conversão de medidas**")
     
     # Sidebar
     with st.sidebar:
         st.header("⚙️ Configurações")
         
-        # Recomendação VPN
-        st.info("🔒 **Recomendação: Use Opera Browser**\n\nO Opera possui VPN nativa gratuita que ajuda a evitar bloqueios da Amazon.\n\n[Baixar Opera](https://www.opera.com/pt-br)")
+        st.info("🔒 **Dicas Anti-Bloqueio**\n\n✅ Use Opera Browser com VPN\n✅ Aguarde 3-5 segundos entre coletas\n✅ Evite coletar muitos produtos seguidos\n\n[Baixar Opera](https://www.opera.com/pt-br)")
         
         st.markdown("---")
         
-        # Opções de tradução
-        st.subheader("🌐 Tradução")
+        st.subheader("🌐 Tradução e Conversão")
         
-        if TRADUTOR_DISPONIVEL:
-            traducao = st.checkbox("Traduzir para PT-BR", value=True)
+        traducao = st.checkbox("Traduzir para PT-BR", value=True)
+        converter = st.checkbox("Converter medidas para padrão BR", value=True, 
+                               help="Converte polegadas→cm, libras→kg, etc.")
+        
+        if traducao:
+            metodo_traducao = st.selectbox(
+                "Método de Tradução:",
+                ["Auto (Múltiplas APIs)", "MyMemory API", "Gemini AI (melhor qualidade)"],
+                help="Auto tenta MyMemory, Libre Translate e Deep Translator em cascata"
+            )
             
-            if GEMINI_DISPONIVEL:
-                usar_gemini = st.checkbox("🤖 Usar Gemini AI (melhor qualidade)", value=False)
-                
-                if usar_gemini:
+            usar_gemini = "Gemini" in metodo_traducao
+            
+            if usar_gemini:
+                if GEMINI_DISPONIVEL:
                     gemini_key = st.text_input(
                         "Gemini API Key:",
                         type="password",
                         help="Obtenha em: https://makersuite.google.com/app/apikey"
                     )
                 else:
+                    st.warning("📦 Gemini indisponível. Instale: `pip install google-generativeai`")
+                    usar_gemini = False
                     gemini_key = None
             else:
-                usar_gemini = False
                 gemini_key = None
-                st.warning("📦 Para usar Gemini: `pip install google-generativeai`")
         else:
-            traducao = False
             usar_gemini = False
             gemini_key = None
-            st.error("❌ Deep Translator não instalado")
-            st.code("pip install deep-translator", language="bash")
         
         st.markdown("---")
-        st.caption("v2.0 - Com suporte VTEX e Gemini AI")
+        
+        # Status das APIs
+        st.caption("**Status das APIs de Tradução:**")
+        st.caption(f"{'✅' if True else '❌'} MyMemory (sempre disponível)")
+        st.caption(f"{'✅' if LIBRE_DISPONIVEL else '❌'} Libre Translate")
+        st.caption(f"{'✅' if TRADUTOR_DISPONIVEL else '❌'} Deep Translator")
+        st.caption(f"{'✅' if GEMINI_DISPONIVEL else '❌'} Gemini AI")
+        
+        st.markdown("---")
+        st.caption("v2.1 - Múltiplas APIs de tradução + Conversão de medidas")
     
     # Input
     url_input = st.text_input(
@@ -468,16 +626,15 @@ def main():
                 else:
                     st.success("✅ Dados coletados!")
                     
-                    # Tradução
-                    if traducao and TRADUTOR_DISPONIVEL:
-                        metodo = "Gemini AI" if usar_gemini and gemini_key else "Deep Translator"
-                        with st.spinner(f"🌐 Traduzindo com {metodo}..."):
+                    # Tradução e conversão
+                    if traducao or converter:
+                        metodo = "Gemini AI" if usar_gemini and gemini_key else "APIs Múltiplas"
+                        with st.spinner(f"🌐 Traduzindo e convertendo com {metodo}..."):
                             progress_bar = st.progress(0)
-                            dados = traduzir_dados(dados, usar_gemini, gemini_key, progress_bar)
+                            dados = traduzir_e_converter_dados(dados, usar_gemini, gemini_key, progress_bar)
                             progress_bar.empty()
-                            st.success(f"✅ Tradução concluída com {metodo}!")
+                            st.success(f"✅ Processamento concluído com {metodo}!")
                     
-                    # Salva no session_state
                     st.session_state['dados_coletados'] = dados
     
     # Exibe dados se já coletados
@@ -533,7 +690,7 @@ def main():
             else:
                 st.info("Imagem não disponível")
         
-        # Detalhes Técnicos (NOVO)
+        # Detalhes Técnicos
         st.markdown("---")
         st.subheader("🔧 Detalhes Técnicos Completos")
         
@@ -618,7 +775,6 @@ def main():
                 st.info("Excel indisponível")
         
         with col4:
-            # NOVO: Exportar para VTEX
             vtex_data = gerar_vtex_markdown(dados)
             st.download_button(
                 label="🏪 VTEX",
@@ -631,6 +787,22 @@ def main():
         # Preview VTEX
         with st.expander("👁️ Preview VTEX Markdown"):
             st.code(vtex_data, language="markdown")
+        
+        # Preview de Conversões
+        with st.expander("📏 Conversões de Medidas Aplicadas"):
+            st.info("""
+            **Conversões Automáticas Realizadas:**
+            
+            📐 **Comprimento:** inches → cm, feet → m, yards → m
+            
+            ⚖️ **Peso:** pounds/lbs → kg, ounces → g
+            
+            🧪 **Volume:** gallons → L, fl oz → ml, quarts → L, pints → ml
+            
+            👕 **Tamanhos:** XS→P, S→M, M→G, L→GG, XL→XG, etc.
+            
+            *Valores originais são mantidos junto com as conversões.*
+            """)
 
 if __name__ == "__main__":
     main()
