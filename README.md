@@ -60,6 +60,27 @@
 
 ---
 
+### 📏 Advanced Measurement Conversion (New)
+
+Automatically converts US imperial units to Brazilian metric standards with high precision:
+
+* **Weight:** `lbs`, `oz` → `kg`, `g` (e.g., "5.5 lbs" → "2,49 kg")
+* **Length:** `inches`, `ft`, `yards` → `cm`, `m` (e.g., "10 inches" → "25,4 cm")
+* **Volume:** `gal`, `fl oz`, `cups` → `L`, `ml` (e.g., "1 gallon" → "3,79 L")
+* **Temperature:** `°F` → `°C` (e.g., "98.6°F" → "37,0°C")
+* **Area/Energy:** `sq ft` → `m²`, `BTU` → `J/kW`
+
+### 👕 Smart Clothing Size Guide (New)
+
+Context-aware conversion for apparel based on gender and product type:
+
+* **Men's:** US sizes (XS-XXL) → BR sizes (PP-XXG) and Shoe sizes (US 10 → BR 42)
+* **Women's:** Dress sizes (US 4 → BR 38) and Shoe sizes (US 7 → BR 37)
+* **Children/Infant:** Age-based conversion (e.g., 2T → 2 anos)
+* **Smart Detection:** Automatically detects gender from product title/description to apply the correct size chart.
+
+---
+
 ### 🏪 VTEX Export (New)
 
 Easily export your scraped and translated product data in **VTEX-compatible markdown format**.

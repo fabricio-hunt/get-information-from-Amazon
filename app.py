@@ -12,6 +12,7 @@ from datetime import datetime
 import pandas as pd
 import re
 import random
+import concurrent.futures
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -65,83 +66,244 @@ TRADUCOES_MANUAIS = {
     'url_produto': 'URL do Produto',
 }
 
-# Tabelas de conversão
+# Tabelas de conversão expandidas
 CONVERSAO_MEDIDAS = {
     # Comprimento
-    'inch': {'para': 'cm', 'multiplicador': 2.54},
-    'inches': {'para': 'cm', 'multiplicador': 2.54},
-    'in': {'para': 'cm', 'multiplicador': 2.54},
-    'ft': {'para': 'm', 'multiplicador': 0.3048},
-    'feet': {'para': 'm', 'multiplicador': 0.3048},
-    'foot': {'para': 'm', 'multiplicador': 0.3048},
-    'yard': {'para': 'm', 'multiplicador': 0.9144},
-    'yd': {'para': 'm', 'multiplicador': 0.9144},
-    
+    'inch': {'para': 'cm', 'multiplicador': 2.54, 'precisao': 1},
+    'inches': {'para': 'cm', 'multiplicador': 2.54, 'precisao': 1},
+    'in': {'para': 'cm', 'multiplicador': 2.54, 'precisao': 1},
+    '"': {'para': 'cm', 'multiplicador': 2.54, 'precisao': 1},
+    'ft': {'para': 'm', 'multiplicador': 0.3048, 'precisao': 2},
+    'feet': {'para': 'm', 'multiplicador': 0.3048, 'precisao': 2},
+    'foot': {'para': 'm', 'multiplicador': 0.3048, 'precisao': 2},
+    "'": {'para': 'm', 'multiplicador': 0.3048, 'precisao': 2},
+    'yd': {'para': 'm', 'multiplicador': 0.9144, 'precisao': 2},
+    'yard': {'para': 'm', 'multiplicador': 0.9144, 'precisao': 2},
+    'yards': {'para': 'm', 'multiplicador': 0.9144, 'precisao': 2},
+    'mi': {'para': 'km', 'multiplicador': 1.60934, 'precisao': 2},
+    'mile': {'para': 'km', 'multiplicador': 1.60934, 'precisao': 2},
+    'miles': {'para': 'km', 'multiplicador': 1.60934, 'precisao': 2},
+
     # Peso
-    'lb': {'para': 'kg', 'multiplicador': 0.453592},
-    'lbs': {'para': 'kg', 'multiplicador': 0.453592},
-    'pound': {'para': 'kg', 'multiplicador': 0.453592},
-    'pounds': {'para': 'kg', 'multiplicador': 0.453592},
-    'oz': {'para': 'g', 'multiplicador': 28.3495},
-    'ounce': {'para': 'g', 'multiplicador': 28.3495},
-    'ounces': {'para': 'g', 'multiplicador': 28.3495},
-    
+    'lb': {'para': 'kg', 'multiplicador': 0.453592, 'precisao': 2},
+    'lbs': {'para': 'kg', 'multiplicador': 0.453592, 'precisao': 2},
+    'pound': {'para': 'kg', 'multiplicador': 0.453592, 'precisao': 2},
+    'pounds': {'para': 'kg', 'multiplicador': 0.453592, 'precisao': 2},
+    'oz': {'para': 'g', 'multiplicador': 28.3495, 'precisao': 0},
+    'ounce': {'para': 'g', 'multiplicador': 28.3495, 'precisao': 0},
+    'ounces': {'para': 'g', 'multiplicador': 28.3495, 'precisao': 0},
+    'us ton': {'para': 'kg', 'multiplicador': 907.185, 'precisao': 0},
+
     # Volume
-    'gallon': {'para': 'L', 'multiplicador': 3.78541},
-    'gal': {'para': 'L', 'multiplicador': 3.78541},
-    'fl oz': {'para': 'ml', 'multiplicador': 29.5735},
-    'fluid ounce': {'para': 'ml', 'multiplicador': 29.5735},
-    'quart': {'para': 'L', 'multiplicador': 0.946353},
-    'qt': {'para': 'L', 'multiplicador': 0.946353},
-    'pint': {'para': 'ml', 'multiplicador': 473.176},
-    'pt': {'para': 'ml', 'multiplicador': 473.176},
+    'fl oz': {'para': 'ml', 'multiplicador': 29.5735, 'precisao': 0},
+    'fluid ounce': {'para': 'ml', 'multiplicador': 29.5735, 'precisao': 0}, 
+    'fluid ounces': {'para': 'ml', 'multiplicador': 29.5735, 'precisao': 0},
+    'cup': {'para': 'ml', 'multiplicador': 236.588, 'precisao': 0},
+    'cups': {'para': 'ml', 'multiplicador': 236.588, 'precisao': 0},
+    'pint': {'para': 'ml', 'multiplicador': 473.176, 'precisao': 0},
+    'pt': {'para': 'ml', 'multiplicador': 473.176, 'precisao': 0},
+    'quart': {'para': 'L', 'multiplicador': 0.946353, 'precisao': 3},
+    'qt': {'para': 'L', 'multiplicador': 0.946353, 'precisao': 3},
+    'gal': {'para': 'L', 'multiplicador': 3.78541, 'precisao': 2},
+    'gallon': {'para': 'L', 'multiplicador': 3.78541, 'precisao': 2},
+    'gallons': {'para': 'L', 'multiplicador': 3.78541, 'precisao': 2},
+
+    # Area
+    'sq in': {'para': 'cm²', 'multiplicador': 6.4516, 'precisao': 1},
+    'sq ft': {'para': 'm²', 'multiplicador': 0.0929, 'precisao': 2},
+    'acre': {'para': 'm²', 'multiplicador': 4046.86, 'precisao': 0},
+    
+    # Potencia/Energia
+    'hp': {'para': 'kW', 'multiplicador': 0.7457, 'precisao': 2},
+    'horsepower': {'para': 'kW', 'multiplicador': 0.7457, 'precisao': 2},
+    'btu': {'para': 'J', 'multiplicador': 1055.06, 'precisao': 0}, 
 }
 
-# Conversão de tamanhos de roupa
+# Conversão de tamanhos de roupa (simplificado para detecção direta na string)
 CONVERSAO_TAMANHOS = {
-    'XXS': 'PP', 'XS': 'P', 'S': 'M', 'M': 'G', 'L': 'GG', 'XL': 'XG', 
-    '2XL': 'XXG', '3XL': 'XXXG', '4XL': 'XXXXG'
+    # Genérico / Masculino Padrão
+    'XS': 'PP', 'S': 'M', 'M': 'G', 'L': 'GG', 'XL': 'XGG', 
+    '2XL': 'XXGG', '3XL': 'XXXGG', 'XXL': 'XXGG', 'XXS': 'PPP'
 }
 
-def converter_medidas(texto: str) -> str:
-    """Converte medidas americanas para brasileiras"""
+# Mapas de Roupas Específicos
+CONVERSAO_FEMININO = {
+    '0': '34', '2': '36', '4': '38', '6': '40', '8': '42', '10': '44', 
+    '12': '46', '14': '48', '16': '50', '18': '52'
+}
+
+CONVERSAO_CALCADOS_FEM = {
+    '5': '34', '5.5': '35', '6': '36', '6.5': '36', '7': '37', '7.5': '37',
+    '8': '38', '8.5': '38', '9': '39', '9.5': '39', '10': '40', '11': '41'
+}
+
+CONVERSAO_CALCADOS_MASC = {
+    '6': '38', '6.5': '38', '7': '39', '7.5': '39', '8': '40', '8.5': '40',
+    '9': '41', '9.5': '41', '10': '42', '10.5': '42', '11': '43', '12': '44', '13': '45'
+}
+
+def identificar_genero(texto: str) -> str:
+    """Identifica contexto de gênero no texto"""
+    texto = texto.lower()
+    if any(p in texto for p in ['women', 'woman', 'feminino', 'mulher', 'senhora', 'ladies']):
+        return 'feminino'
+    if any(p in texto for p in ['men', 'man', 'masculino', 'homem', 'senhor']):
+        return 'masculino'
+    if any(p in texto for p in ['kid', 'child', 'baby', 'infant', 'toddler', 'crianca', 'bebe', 'infantil']):
+        return 'infantil'
+    return 'unisex'
+
+def formatar_numero_br(valor: float, precisao: int = 2) -> str:
+    """Formata número para padrão brasileiro (vírgula decimal)"""
+    if precisao == 0:
+        s = f"{int(round(valor))}"
+    else:
+        s = f"{valor:.{precisao}f}"
+    return s.replace('.', ',')
+
+def converter_medidas(texto: str, genero_ctx: str = 'unisex') -> str:
+    """
+    Converte medidas americanas para brasileiras e tamanhos de roupa.
+    Suporta: Peso, Comprimento, Volume, Área, Temperatura, Roupas/Calçados.
+    """
     if not texto or texto == "N/A":
         return texto
     
-    texto_convertido = texto
+    texto_final = texto
     
-    # Padrão para encontrar números seguidos de unidades
-    padrao = r'(\d+\.?\d*)\s*([a-zA-Z]+)'
+    # --- 1. Conversão de Temperatura (F -> C) ---
+    # Busca padrões como 98.6°F, 98.6 F, 98.6 degrees F
+    padrao_temp = r'(-?[\d\.,]+)\s*(?:°|º|deg|degrees)?\s*F\b'
     
-    def substituir_medida(match):
-        numero = float(match.group(1))
-        unidade = match.group(2).lower()
+    def conv_temp(match):
+        orig = match.group(0)
+        try:
+            val_f = float(match.group(1).replace(',', '.'))
+            val_c = (val_f - 32) * 5/9
+            return f"{formatar_numero_br(val_c, 1)}°C ({orig})"
+        except:
+            return orig
+
+    texto_final = re.sub(padrao_temp, conv_temp, texto_final, flags=re.IGNORECASE)
+
+    # --- 2. Conversão de Medidas Físicas (Peso, Dimensão, Volume) ---
+    # Regex robusto para capturar números com vírgulas de milhar e dimensões compostas
+    # Ex: "1,200 lbs", "10 x 20 inches", "5.5 ft"
+    padrao_fisico = r'((?:[\d]+(?:,[\d]{3})*|\d+)(?:\.\d+)?(?:\s*[xX]\s*(?:[\d]+(?:,[\d]{3})*|\d+)(?:\.\d+)?)*)\s*([a-zA-Z"\']+(?:\s+[a-zA-Z]+)?)'
+    
+    def conv_fisico(match):
+        numeros_str = match.group(1)
+        unidade = match.group(2).lower().replace('.', '') # remove pontos de abrev. ex: lb.
         
+        # Mapear unidade
+        info_unidade = None
+        
+        # Tentativa exata
         if unidade in CONVERSAO_MEDIDAS:
-            conversao = CONVERSAO_MEDIDAS[unidade]
-            valor_convertido = numero * conversao['multiplicador']
-            unidade_brasileira = conversao['para']
-            
-            # Arredonda para 2 casas decimais
-            valor_convertido = round(valor_convertido, 2)
-            
-            return f"{match.group(0)} ({valor_convertido} {unidade_brasileira})"
+            info_unidade = CONVERSAO_MEDIDAS[unidade]
+        else:
+            # Tentativa singular/plural básica
+            if unidade.endswith('s') and unidade[:-1] in CONVERSAO_MEDIDAS:
+                info_unidade = CONVERSAO_MEDIDAS[unidade[:-1]]
         
+        if info_unidade:
+            novo_std = info_unidade['para']
+            fator = info_unidade['multiplicador']
+            precisao = info_unidade['precisao']
+            tipo = info_unidade.get('tipo', 'geral')
+            
+            # Ajuste dinâmico de unidade (Ex: kg <-> g)
+            ajuste_unidade = False
+            
+            partes = re.split(r'\s*[xX]\s*', numeros_str)
+            partes_convertidas = []
+            
+            for parte in partes:
+                try:
+                    # Remove vírgulas de milhar padrão US para converter float
+                    val_float = float(parte.replace(',', ''))
+                    val_conv = val_float * fator
+                    
+                    # Lógica de escala inteligente
+                    std_final = novo_std
+                    val_final = val_conv
+                    
+                    if tipo == 'peso':
+                        if std_final == 'kg' and val_final < 1:
+                            val_final *= 1000
+                            std_final = 'g'
+                            precisao = 0
+                        elif std_final == 'g' and val_final >= 1000:
+                            val_final /= 1000
+                            std_final = 'kg'
+                            precisao = 2
+                            
+                    elif tipo == 'linear':
+                        if std_final == 'm' and val_final < 1:
+                            val_final *= 100
+                            std_final = 'cm'
+                            precisao = 1
+                        elif std_final == 'cm' and val_final >= 100:
+                            val_final /= 100
+                            std_final = 'm'
+                            precisao = 2
+                    
+                    elif tipo == 'volume':
+                         if std_final == 'L' and val_final < 1:
+                             val_final *= 1000
+                             std_final = 'ml'
+                             precisao = 0
+                    
+                    partes_convertidas.append(formatar_numero_br(val_final, precisao))
+                    # Assume que todas as dimensões usam a mesma unidade final (simplificação segura)
+                    novo_std = std_final 
+                    
+                except ValueError:
+                    partes_convertidas.append(parte)
+            
+            valores_formatados = " x ".join(partes_convertidas)
+            return f"{valores_formatados} {novo_std}"
+            
         return match.group(0)
-    
-    texto_convertido = re.sub(padrao, substituir_medida, texto_convertido)
-    
-    # Converte tamanhos de roupa
-    for tamanho_us, tamanho_br in CONVERSAO_TAMANHOS.items():
-        # Procura por tamanhos isolados ou entre espaços
-        texto_convertido = re.sub(
-            rf'\b{tamanho_us}\b',
-            f"{tamanho_us} (Tam. BR: {tamanho_br})",
-            texto_convertido,
-            flags=re.IGNORECASE
-        )
-    
-    return texto_convertido
+
+    texto_final = re.sub(padrao_fisico, conv_fisico, texto_final, flags=re.IGNORECASE)
+
+    # --- 3. Conversão de Tamanhos (Roupas/Calçados) ---
+    # Apenas se o texto for curto (provavelmente um campo de "Tamanho") ou parecer um tamanho isolado
+    if len(texto) < 50: 
+        # Calçados
+        if 'shoe' in texto.lower() or 'tênis' in texto.lower() or 'calçado' in texto.lower() or 'boot' in texto.lower():
+            mapa = CONVERSAO_CALCADOS_MASC if genero_ctx == 'masculino' else CONVERSAO_CALCADOS_FEM
+            # Procura número isolado
+            match_num = re.search(r'\b(\d+(?:\.\d)?)\b', texto_final)
+            if match_num:
+                num_us = match_num.group(1)
+                if num_us in mapa:
+                    texto_final = texto_final.replace(num_us, f"BR {mapa[num_us]} (US {num_us})")
+        
+        # Roupas (Numérico Feminino)
+        elif genero_ctx == 'feminino' and re.match(r'^\s*\d+\s*$', texto_final):
+             num = texto_final.strip()
+             if num in CONVERSAO_FEMININO:
+                 texto_final = f"BR {CONVERSAO_FEMININO[num]} (US {num})"
+
+        # Letras (S, M, L...) - Single Pass Replacement + Lookbehind Protection
+        # Cria padrão que evita correspondência se precedido por dígito e espaço/hífen
+        # Ex: "10 L" -> "10 GG" (Não queremos isso). "Size L" -> "Size GG" (OK)
+        
+        def replace_callback(match):
+            key = match.group(0).upper() # Normalize case for lookup
+            return CONVERSAO_TAMANHOS.get(key, match.group(0))
+
+        # Ordenar chaves por tamanho reverso para evitar match parcial (ex: XXL vs XL) - embora aqui tenhamos word boundary
+        keys = sorted(CONVERSAO_TAMANHOS.keys(), key=len, reverse=True)
+        # Regex: (?<![\d.,]\s)(?<!['])\b(XXL|XL|L|...)\b
+        # Evita: "10 L" (Liters), "Men's" ('s -> S -> M)
+        pattern = r'(?<![\d.,]\s)(?<![\'])\b(' + '|'.join(map(re.escape, keys)) + r')\b'
+        
+        texto_final = re.sub(pattern, replace_callback, texto_final, flags=re.IGNORECASE)
+
+    return texto_final
 
 def limpar_url_amazon(url: str) -> str:
     """Remove parâmetros desnecessários da URL"""
@@ -393,28 +555,30 @@ def extrair_asin(soup: BeautifulSoup, url: str) -> str:
     return "N/A"
 
 def traduzir_e_converter_dados(dados: dict, usar_gemini: bool = False, gemini_key: str = None, progress_bar=None) -> dict:
-    """Traduz e converte medidas de todos os dados"""
+    """Traduz e converte medidas de todos os dados usando Threads"""
     dados_traduzidos = {}
-    total_campos = len(dados)
+    items_to_process = list(dados.items())
+    total_campos = len(items_to_process)
     
-    for idx, (chave, valor) in enumerate(dados.items()):
-        if progress_bar:
-            progress_bar.progress((idx + 1) / total_campos)
-        
+    # 1. Identificar Gênero Globalmente para contexto de conversão
+    texto_contexto = (str(dados.get('titulo_h1', '')) + ' ' + str(dados.get('about_item', ''))).lower()
+    genero_ctx = identificar_genero(texto_contexto)
+
+    def processar_item(item_tuple):
+        chave, valor = item_tuple
         chave_trad = TRADUCOES_MANUAIS.get(chave, traduzir_texto(chave.replace('_', ' ').title()))
+        valor_processado = None
         
         if isinstance(valor, str):
             if valor.startswith(('http', 'www', 'https')) or valor == "N/A":
-                dados_traduzidos[chave_trad] = valor
+                valor_processado = valor
             else:
-                # Traduz
                 if usar_gemini and gemini_key:
                     valor_trad = traduzir_com_gemini(valor, gemini_key)
                 else:
                     valor_trad = traduzir_texto(valor)
-                
-                # Converte medidas
-                dados_traduzidos[chave_trad] = converter_medidas(valor_trad)
+                # Passa o contexto de genero
+                valor_processado = converter_medidas(valor_trad, genero_ctx)
         
         elif isinstance(valor, list):
             lista_trad = []
@@ -424,11 +588,11 @@ def traduzir_e_converter_dados(dados: dict, usar_gemini: bool = False, gemini_ke
                         item_trad = traduzir_com_gemini(item, gemini_key)
                     else:
                         item_trad = traduzir_texto(item)
-                    lista_trad.append(converter_medidas(item_trad))
+                    lista_trad.append(converter_medidas(item_trad, genero_ctx))
                 else:
                     lista_trad.append(item)
-            dados_traduzidos[chave_trad] = lista_trad
-        
+            valor_processado = lista_trad
+            
         elif isinstance(valor, dict):
             dict_trad = {}
             for sub_chave, sub_valor in valor.items():
@@ -438,16 +602,29 @@ def traduzir_e_converter_dados(dados: dict, usar_gemini: bool = False, gemini_ke
                         sub_valor_trad = traduzir_com_gemini(sub_valor, gemini_key)
                     else:
                         sub_valor_trad = traduzir_texto(sub_valor)
-                    dict_trad[sub_chave_trad] = converter_medidas(sub_valor_trad)
+                    dict_trad[sub_chave_trad] = converter_medidas(sub_valor_trad, genero_ctx)
                 else:
                     dict_trad[sub_chave] = sub_valor
-            dados_traduzidos[chave_trad] = dict_trad
-        
+            valor_processado = dict_trad
+            
         else:
-            dados_traduzidos[chave_trad] = valor
+            valor_processado = valor
+            
+        return chave_trad, valor_processado
+
+    # Execução Paralela
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(processar_item, item): item for item in items_to_process}
         
-        time.sleep(0.05)  # Reduz delay para melhor performance
-    
+        completed_count = 0
+        for future in concurrent.futures.as_completed(futures):
+            chave_trad, valor_processado = future.result()
+            dados_traduzidos[chave_trad] = valor_processado
+            
+            completed_count += 1
+            if progress_bar:
+                progress_bar.progress(completed_count / total_campos)
+                
     return dados_traduzidos
 
 def coletar_dados_produto(url: str) -> dict:
