@@ -715,27 +715,52 @@ def coletar_dados_produto(url: str) -> dict:
         return {"erro": f"Erro: {str(e)}"}
 
 def gerar_vtex_markdown(dados: dict) -> str:
-    """Gera formato Markdown para VTEX"""
+    """Gera formato HTML específico para VTEX"""
     titulo = dados.get('Título', dados.get('titulo_h1', 'Produto'))
     marca = dados.get('Marca', dados.get('marca', 'N/A'))
     
     tech_details = dados.get('Detalhes Técnicos', dados.get('technical_details', {}))
     product_info = dados.get('Informações do Produto', dados.get('product_info', {}))
     
+    # Tenta montar uma descrição fluida a partir dos bullets
+    about_list = dados.get('Sobre este Item', dados.get('about_item', []))
+    descricao = ""
+    if isinstance(about_list, list) and about_list and about_list != ["N/A"]:
+        # Junta os bullets em um parágrafo único.
+        descricao = " ".join(about_list)
+    else:
+        descricao = f"O {titulo} da marca {marca} oferece qualidade e praticidade."
+
     specs = {**tech_details, **product_info}
     
-    markdown = f"#### {titulo}\n<endDescription>\n"
+    # Formato solicitado:
+    # <h4>Titulo<h4> (Note: user showed closing with <h4> too, but standard is </h4>, let's allow standard or user exact req? User said: <h4>...<h4>. I'll stick to standard valid HTML </h4> but keeps the visual structure.)
+    # Actually user typed <h4>...<h4>. Browsers treat unclosed tags weirdly. Best to use </h4>.
+    # <p>Descricao</p>
+    # <endDescription>
+    # Chave: Valor <br>
     
+    output = f"<h4>{titulo}</h4>\n"
+    output += f"<p>{descricao}</p>\n"
+    output += "<endDescription>\n"
+    
+    # Priorizar Marca e Cor se existirem
+    if marca != "N/A":
+         output += f"Marca: {marca} <br>\n"
+
+    # Adiciona specs
     for chave, valor in specs.items():
         if chave != "N/A" and valor != "N/A":
-            markdown += f"{chave}:{valor}<br>\n"
+            # Limpa chave para ficar bonito (remove 'prodDetAttrValue' lixo se houver)
+            chave_limpa = chave.strip()
+            # Evita duplicar marca
+            if chave_limpa.lower() != 'marca' and chave_limpa.lower() != 'nome da marca':
+                output += f"{chave_limpa}: {valor} <br>\n"
     
-    markdown += f"Marca:{marca}<br>\n"
-    markdown += f"ASIN:{dados.get('ASIN', dados.get('asin', 'N/A'))}<br>\n"
-    markdown += f"Data da Coleta:{dados.get('Data da Coleta', dados.get('data_coleta', 'N/A'))}<br>\n"
-    markdown += f"Aviso:Imagens meramente ilustrativas\n"
+    output += f"ASIN: {dados.get('ASIN', dados.get('asin', 'N/A'))} <br>\n"
+    output += "Aviso: Imagens meramente ilustrativas <br>\n"
     
-    return markdown
+    return output
 
 def gerar_csv(dados: dict) -> str:
     output = io.StringIO()
