@@ -67,56 +67,87 @@ TRADUCOES_MANUAIS = {
 }
 
 # Tabelas de conversão expandidas
+# Tabelas de conversão expandidas (EN + PT)
 CONVERSAO_MEDIDAS = {
     # Comprimento
-    'inch': {'para': 'cm', 'multiplicador': 2.54, 'precisao': 1},
-    'inches': {'para': 'cm', 'multiplicador': 2.54, 'precisao': 1},
-    'in': {'para': 'cm', 'multiplicador': 2.54, 'precisao': 1},
-    '"': {'para': 'cm', 'multiplicador': 2.54, 'precisao': 1},
-    'ft': {'para': 'm', 'multiplicador': 0.3048, 'precisao': 2},
-    'feet': {'para': 'm', 'multiplicador': 0.3048, 'precisao': 2},
-    'foot': {'para': 'm', 'multiplicador': 0.3048, 'precisao': 2},
-    "'": {'para': 'm', 'multiplicador': 0.3048, 'precisao': 2},
-    'yd': {'para': 'm', 'multiplicador': 0.9144, 'precisao': 2},
-    'yard': {'para': 'm', 'multiplicador': 0.9144, 'precisao': 2},
-    'yards': {'para': 'm', 'multiplicador': 0.9144, 'precisao': 2},
-    'mi': {'para': 'km', 'multiplicador': 1.60934, 'precisao': 2},
-    'mile': {'para': 'km', 'multiplicador': 1.60934, 'precisao': 2},
-    'miles': {'para': 'km', 'multiplicador': 1.60934, 'precisao': 2},
+    'inch': {'para': 'cm', 'multiplicador': 2.54, 'precisao': 1, 'tipo': 'linear'},
+    'inches': {'para': 'cm', 'multiplicador': 2.54, 'precisao': 1, 'tipo': 'linear'},
+    'in': {'para': 'cm', 'multiplicador': 2.54, 'precisao': 1, 'tipo': 'linear'},
+    '"': {'para': 'cm', 'multiplicador': 2.54, 'precisao': 1, 'tipo': 'linear'},
+    'polegada': {'para': 'cm', 'multiplicador': 2.54, 'precisao': 1, 'tipo': 'linear'},
+    'polegadas': {'para': 'cm', 'multiplicador': 2.54, 'precisao': 1, 'tipo': 'linear'},
+    
+    'ft': {'para': 'm', 'multiplicador': 0.3048, 'precisao': 2, 'tipo': 'linear'},
+    'feet': {'para': 'm', 'multiplicador': 0.3048, 'precisao': 2, 'tipo': 'linear'},
+    'foot': {'para': 'm', 'multiplicador': 0.3048, 'precisao': 2, 'tipo': 'linear'},
+    "'": {'para': 'm', 'multiplicador': 0.3048, 'precisao': 2, 'tipo': 'linear'},
+    'pé': {'para': 'm', 'multiplicador': 0.3048, 'precisao': 2, 'tipo': 'linear'},
+    'pes': {'para': 'm', 'multiplicador': 0.3048, 'precisao': 2, 'tipo': 'linear'},
+    'pés': {'para': 'm', 'multiplicador': 0.3048, 'precisao': 2, 'tipo': 'linear'},
+    
+    'yd': {'para': 'm', 'multiplicador': 0.9144, 'precisao': 2, 'tipo': 'linear'},
+    'yard': {'para': 'm', 'multiplicador': 0.9144, 'precisao': 2, 'tipo': 'linear'},
+    'yards': {'para': 'm', 'multiplicador': 0.9144, 'precisao': 2, 'tipo': 'linear'},
+    'jarda': {'para': 'm', 'multiplicador': 0.9144, 'precisao': 2, 'tipo': 'linear'},
+    'jardas': {'para': 'm', 'multiplicador': 0.9144, 'precisao': 2, 'tipo': 'linear'},
+    
+    'mi': {'para': 'km', 'multiplicador': 1.60934, 'precisao': 2, 'tipo': 'linear'},
+    'mile': {'para': 'km', 'multiplicador': 1.60934, 'precisao': 2, 'tipo': 'linear'},
+    'miles': {'para': 'km', 'multiplicador': 1.60934, 'precisao': 2, 'tipo': 'linear'},
+    'milha': {'para': 'km', 'multiplicador': 1.60934, 'precisao': 2, 'tipo': 'linear'},
+    'milhas': {'para': 'km', 'multiplicador': 1.60934, 'precisao': 2, 'tipo': 'linear'},
 
     # Peso
-    'lb': {'para': 'kg', 'multiplicador': 0.453592, 'precisao': 2},
-    'lbs': {'para': 'kg', 'multiplicador': 0.453592, 'precisao': 2},
-    'pound': {'para': 'kg', 'multiplicador': 0.453592, 'precisao': 2},
-    'pounds': {'para': 'kg', 'multiplicador': 0.453592, 'precisao': 2},
-    'oz': {'para': 'g', 'multiplicador': 28.3495, 'precisao': 0},
-    'ounce': {'para': 'g', 'multiplicador': 28.3495, 'precisao': 0},
-    'ounces': {'para': 'g', 'multiplicador': 28.3495, 'precisao': 0},
-    'us ton': {'para': 'kg', 'multiplicador': 907.185, 'precisao': 0},
+    'lb': {'para': 'kg', 'multiplicador': 0.453592, 'precisao': 2, 'tipo': 'peso'},
+    'lbs': {'para': 'kg', 'multiplicador': 0.453592, 'precisao': 2, 'tipo': 'peso'},
+    'pound': {'para': 'kg', 'multiplicador': 0.453592, 'precisao': 2, 'tipo': 'peso'},
+    'pounds': {'para': 'kg', 'multiplicador': 0.453592, 'precisao': 2, 'tipo': 'peso'},
+    'libra': {'para': 'kg', 'multiplicador': 0.453592, 'precisao': 2, 'tipo': 'peso'},
+    'libras': {'para': 'kg', 'multiplicador': 0.453592, 'precisao': 2, 'tipo': 'peso'},
+    
+    'oz': {'para': 'g', 'multiplicador': 28.3495, 'precisao': 0, 'tipo': 'peso'},
+    'ounce': {'para': 'g', 'multiplicador': 28.3495, 'precisao': 0, 'tipo': 'peso'},
+    'ounces': {'para': 'g', 'multiplicador': 28.3495, 'precisao': 0, 'tipo': 'peso'},
+    'onça': {'para': 'g', 'multiplicador': 28.3495, 'precisao': 0, 'tipo': 'peso'},
+    'onças': {'para': 'g', 'multiplicador': 28.3495, 'precisao': 0, 'tipo': 'peso'},
+    
+    'us ton': {'para': 'kg', 'multiplicador': 907.185, 'precisao': 0, 'tipo': 'peso'},
 
     # Volume
-    'fl oz': {'para': 'ml', 'multiplicador': 29.5735, 'precisao': 0},
-    'fluid ounce': {'para': 'ml', 'multiplicador': 29.5735, 'precisao': 0}, 
-    'fluid ounces': {'para': 'ml', 'multiplicador': 29.5735, 'precisao': 0},
-    'cup': {'para': 'ml', 'multiplicador': 236.588, 'precisao': 0},
-    'cups': {'para': 'ml', 'multiplicador': 236.588, 'precisao': 0},
-    'pint': {'para': 'ml', 'multiplicador': 473.176, 'precisao': 0},
-    'pt': {'para': 'ml', 'multiplicador': 473.176, 'precisao': 0},
-    'quart': {'para': 'L', 'multiplicador': 0.946353, 'precisao': 3},
-    'qt': {'para': 'L', 'multiplicador': 0.946353, 'precisao': 3},
-    'gal': {'para': 'L', 'multiplicador': 3.78541, 'precisao': 2},
-    'gallon': {'para': 'L', 'multiplicador': 3.78541, 'precisao': 2},
-    'gallons': {'para': 'L', 'multiplicador': 3.78541, 'precisao': 2},
+    'fl oz': {'para': 'ml', 'multiplicador': 29.5735, 'precisao': 0, 'tipo': 'volume'},
+    'fluid ounce': {'para': 'ml', 'multiplicador': 29.5735, 'precisao': 0, 'tipo': 'volume'}, 
+    'fluid ounces': {'para': 'ml', 'multiplicador': 29.5735, 'precisao': 0, 'tipo': 'volume'},
+    
+    'cup': {'para': 'ml', 'multiplicador': 236.588, 'precisao': 0, 'tipo': 'volume'},
+    'cups': {'para': 'ml', 'multiplicador': 236.588, 'precisao': 0, 'tipo': 'volume'},
+    
+    'pint': {'para': 'ml', 'multiplicador': 473.176, 'precisao': 0, 'tipo': 'volume'},
+    'pt': {'para': 'ml', 'multiplicador': 473.176, 'precisao': 0, 'tipo': 'volume'},
+    
+    'quart': {'para': 'L', 'multiplicador': 0.946353, 'precisao': 3, 'tipo': 'volume'},
+    'qt': {'para': 'L', 'multiplicador': 0.946353, 'precisao': 3, 'tipo': 'volume'},
+    
+    'gal': {'para': 'L', 'multiplicador': 3.78541, 'precisao': 2, 'tipo': 'volume'},
+    'gallon': {'para': 'L', 'multiplicador': 3.78541, 'precisao': 2, 'tipo': 'volume'},
+    'gallons': {'para': 'L', 'multiplicador': 3.78541, 'precisao': 2, 'tipo': 'volume'},
+    'galão': {'para': 'L', 'multiplicador': 3.78541, 'precisao': 2, 'tipo': 'volume'},
+    'galões': {'para': 'L', 'multiplicador': 3.78541, 'precisao': 2, 'tipo': 'volume'},
+    
+    'cu ft': {'para': 'L', 'multiplicador': 28.3168, 'precisao': 0, 'tipo': 'volume'},
+    'cubic foot': {'para': 'L', 'multiplicador': 28.3168, 'precisao': 0, 'tipo': 'volume'},
+    'cubic feet': {'para': 'L', 'multiplicador': 28.3168, 'precisao': 0, 'tipo': 'volume'},
+    'pé cúbico': {'para': 'L', 'multiplicador': 28.3168, 'precisao': 0, 'tipo': 'volume'},
+    'pés cúbicos': {'para': 'L', 'multiplicador': 28.3168, 'precisao': 0, 'tipo': 'volume'},
 
     # Area
-    'sq in': {'para': 'cm²', 'multiplicador': 6.4516, 'precisao': 1},
-    'sq ft': {'para': 'm²', 'multiplicador': 0.0929, 'precisao': 2},
-    'acre': {'para': 'm²', 'multiplicador': 4046.86, 'precisao': 0},
+    'sq in': {'para': 'cm²', 'multiplicador': 6.4516, 'precisao': 1, 'tipo': 'area'},
+    'sq ft': {'para': 'm²', 'multiplicador': 0.0929, 'precisao': 2, 'tipo': 'area'},
+    'acre': {'para': 'm²', 'multiplicador': 4046.86, 'precisao': 0, 'tipo': 'area'},
     
     # Potencia/Energia
-    'hp': {'para': 'kW', 'multiplicador': 0.7457, 'precisao': 2},
-    'horsepower': {'para': 'kW', 'multiplicador': 0.7457, 'precisao': 2},
-    'btu': {'para': 'J', 'multiplicador': 1055.06, 'precisao': 0}, 
+    'hp': {'para': 'kW', 'multiplicador': 0.7457, 'precisao': 2, 'tipo': 'power'},
+    'horsepower': {'para': 'kW', 'multiplicador': 0.7457, 'precisao': 2, 'tipo': 'power'},
+    'btu': {'para': 'J', 'multiplicador': 1055.06, 'precisao': 0, 'tipo': 'energy'}, 
 }
 
 # Conversão de tamanhos de roupa (simplificado para detecção direta na string)
@@ -172,13 +203,17 @@ def converter_medidas(texto: str, genero_ctx: str = 'unisex') -> str:
     texto_final = texto
     
     # --- 1. Conversão de Temperatura (F -> C) ---
-    # Busca padrões como 98.6°F, 98.6 F, 98.6 degrees F
-    padrao_temp = r'(-?[\d\.,]+)\s*(?:°|º|deg|degrees)?\s*F\b'
+    # Busca padrões como 98.6°F, 98.6 F, 98.6 degrees F, 98.6 graus F
+    padrao_temp = r'(-?[\d\.,]+)\s*(?:°|º|deg|degrees|graus)?\s*F\b'
     
     def conv_temp(match):
         orig = match.group(0)
         try:
-            val_f = float(match.group(1).replace(',', '.'))
+            val_str = match.group(1).replace(',', '.')
+            # Se existirem multiplos pontos (ex 1.200.5), falha
+            if val_str.count('.') > 1: return orig
+            
+            val_f = float(val_str)
             val_c = (val_f - 32) * 5/9
             return f"{formatar_numero_br(val_c, 1)}°C ({orig})"
         except:
@@ -187,24 +222,24 @@ def converter_medidas(texto: str, genero_ctx: str = 'unisex') -> str:
     texto_final = re.sub(padrao_temp, conv_temp, texto_final, flags=re.IGNORECASE)
 
     # --- 2. Conversão de Medidas Físicas (Peso, Dimensão, Volume) ---
-    # Regex robusto para capturar números com vírgulas de milhar e dimensões compostas
-    # Ex: "1,200 lbs", "10 x 20 inches", "5.5 ft"
-    padrao_fisico = r'((?:[\d]+(?:,[\d]{3})*|\d+)(?:\.\d+)?(?:\s*[xX]\s*(?:[\d]+(?:,[\d]{3})*|\d+)(?:\.\d+)?)*)\s*([a-zA-Z"\']+(?:\s+[a-zA-Z]+)?)'
+    # Captura números com vírgulas OU pontos + unidade com possíveis acentos
+    padrao_fisico = r'((?:[\d]+(?:[.,][\d]{3})*|\d+)(?:[.,]\d+)?(?:\s*[xX]\s*(?:[\d]+(?:[.,][\d]{3})*|\d+)(?:[.,]\d+)?)*)\s*([a-zA-Z\u00C0-\u00FF"\']+(?:\s+[a-zA-Z\u00C0-\u00FF]+)?)'
     
     def conv_fisico(match):
         numeros_str = match.group(1)
-        unidade = match.group(2).lower().replace('.', '') # remove pontos de abrev. ex: lb.
+        unidade_raw = match.group(2).lower()
+        unidade = unidade_raw.replace('.', '') 
         
-        # Mapear unidade
         info_unidade = None
         
-        # Tentativa exata
+        # Tentativa exata e singular
         if unidade in CONVERSAO_MEDIDAS:
             info_unidade = CONVERSAO_MEDIDAS[unidade]
         else:
-            # Tentativa singular/plural básica
             if unidade.endswith('s') and unidade[:-1] in CONVERSAO_MEDIDAS:
                 info_unidade = CONVERSAO_MEDIDAS[unidade[:-1]]
+            elif unidade.endswith('oes') and unidade[:-3]+'ao' in CONVERSAO_MEDIDAS: # galões -> galão
+                info_unidade = CONVERSAO_MEDIDAS[unidade[:-3]+'ao']
         
         if info_unidade:
             novo_std = info_unidade['para']
@@ -212,16 +247,29 @@ def converter_medidas(texto: str, genero_ctx: str = 'unisex') -> str:
             precisao = info_unidade['precisao']
             tipo = info_unidade.get('tipo', 'geral')
             
-            # Ajuste dinâmico de unidade (Ex: kg <-> g)
-            ajuste_unidade = False
+            # Heurística para detectar formato de número (BR vs US)
+            # Se unidade é PT (ex: libras, pés), assume vírgula = decimal
+            unidade_pt = any(u in unidade for u in ['libra', 'polegada', 'pé', 'jarda', 'milha', 'onça', 'galão'])
             
             partes = re.split(r'\s*[xX]\s*', numeros_str)
             partes_convertidas = []
             
             for parte in partes:
                 try:
-                    # Remove vírgulas de milhar padrão US para converter float
-                    val_float = float(parte.replace(',', ''))
+                    val_float = 0.0
+                    parte_limpa = parte.replace(' ', '')
+                    
+                    if unidade_pt: 
+                        # Formato BR: 1.200,50 ou 1200,50
+                        # Remove pontos de milhar, troca vírgula decimal por ponto
+                        aux = parte_limpa.replace('.', '').replace(',', '.')
+                        val_float = float(aux)
+                    else:
+                        # Formato US: 1,200.50 ou 1200.50
+                        # Remove vírgulas de milhar
+                        aux = parte_limpa.replace(',', '')
+                        val_float = float(aux)
+                        
                     val_conv = val_float * fator
                     
                     # Lógica de escala inteligente
@@ -255,7 +303,6 @@ def converter_medidas(texto: str, genero_ctx: str = 'unisex') -> str:
                              precisao = 0
                     
                     partes_convertidas.append(formatar_numero_br(val_final, precisao))
-                    # Assume que todas as dimensões usam a mesma unidade final (simplificação segura)
                     novo_std = std_final 
                     
                 except ValueError:
@@ -748,6 +795,7 @@ def main():
                 if GEMINI_DISPONIVEL:
                     gemini_key = st.text_input(
                         "Gemini API Key:",
+                        value="AIzaSyBJqosIPVowPBHyf4Bm_MM27Kznx7-9oSg",
                         type="password",
                         help="Obtenha em: https://makersuite.google.com/app/apikey"
                     )
