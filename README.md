@@ -129,9 +129,26 @@ pandas
 openpyxl
 deep-translator
 google-generativeai
+python-dotenv
 ```
 
-### Step 3 – Run the App
+### Step 3 – Configure Environment Variables (Security)
+
+🔒 **IMPORTANT:** Never commit your API keys to Git!
+
+1. Copy the example file:
+```bash
+cp .env.example .env
+```
+
+2. Edit `.env` and add your real API key:
+```bash
+GEMINI_API_KEY=your_actual_api_key_here
+```
+
+3. The `.env` file is already in `.gitignore` to protect your keys.
+
+### Step 4 – Run the App
 
 ```bash
 streamlit run app.py

@@ -13,6 +13,11 @@ import pandas as pd
 import re
 import random
 import concurrent.futures
+import os
+from dotenv import load_dotenv
+
+# Carrega variáveis de ambiente do arquivo .env
+load_dotenv()
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -818,9 +823,11 @@ def main():
             
             if usar_gemini:
                 if GEMINI_DISPONIVEL:
+                    # Tenta carregar a chave do arquivo .env primeiro
+                    default_key = os.getenv('GEMINI_API_KEY', '')
                     gemini_key = st.text_input(
                         "Gemini API Key:",
-                        value="AIzaSyBJqosIPVowPBHyf4Bm_MM27Kznx7-9oSg",
+                        value=default_key,
                         type="password",
                         help="Obtenha em: https://makersuite.google.com/app/apikey"
                     )

@@ -5,3 +5,4 @@ pandas
 openpyxl
 deep-translator
 google-generativeai
+python-dotenv
